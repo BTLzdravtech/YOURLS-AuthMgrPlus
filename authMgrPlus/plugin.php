@@ -13,7 +13,7 @@ if( !defined( 'YOURLS_ABSPATH' ) ) die();
 
 /****************** SET UP CONSTANTS ******************/
 
-class ampRoles { 
+class ampRoles {
 	const Administrator = 'Administrator';
 	const Editor        = 'Editor';
 	const Contributor   = 'Contributor';
@@ -33,7 +33,7 @@ class ampCap {
 	const APIu          = 'APIu';
 	const ViewStats     = 'ViewStats';
 	const ViewAll       = 'ViewAll';
-}	
+}
 
 /********** Add hooks to intercept functionality in CORE **********/
 
@@ -78,7 +78,7 @@ function amp_intercept_admin() {
 	}
 
 	// allow manipulation of this list ( be mindfull of extending Auth mp Capability class if needed )
-	$action_capability_map = yourls_apply_filter( 'amp_action_capability_map',  
+	$action_capability_map = yourls_apply_filter( 'amp_action_capability_map',
 			array(	'add' => ampCap::AddURL,
 					'delete' => ampCap::DeleteURL,
 					'edit_display' => ampCap::EditURL,
@@ -92,7 +92,7 @@ function amp_intercept_admin() {
 
 		// Define some boundaries for ownership
 		// Allow some flexability with those boundaries
-		$restricted_actions = yourls_apply_filter( 'amp_restricted_ajax_actions', 
+		$restricted_actions = yourls_apply_filter( 'amp_restricted_ajax_actions',
 			array( 	'edit_display',
 					'edit_save',
 					'delete'
@@ -150,7 +150,7 @@ function amp_intercept_admin() {
 	}
 }
 
-/* 
+/*
  * Cosmetic filter: removes disallowed buttons from link list per short link
 */
 
@@ -169,7 +169,7 @@ function amp_ajax_button_check( $actions, $keyword ) {
 	$restricted_buttons = array('delete', 'edit');
 	if ( 'YOURLS_PRIVATE_INFOS' === true )
 		$restricted_buttons += ['stats'];
-				
+
 	$restricted_buttons = yourls_apply_filter( 'amp_restricted_buttons', $restricted_buttons );
 
 	// unset any disallowed buttons
@@ -179,27 +179,27 @@ function amp_ajax_button_check( $actions, $keyword ) {
 			$show = amp_manage_keyword( $keyword, $cap_needed );
 		else
 			$show = amp_have_capability( $cap_needed );
-		if (!$show) 
+		if (!$show)
 			unset( $actions[$action] );
 	}
 	return $actions;
 }
 
-/* 
+/*
  * Cosmetic filter: removes disallowed plugins from link list
 */
 
 yourls_add_filter( 'admin_sublinks', 'amp_admin_sublinks' );
 function amp_admin_sublinks( $links ) {
-	
+
 	global $amp_allowed_plugin_pages;
 
 	if( empty( $links['plugins'] ) ) {
-	
+
 		unset($links['plugins']);
-		
+
 	} else {
-	
+
 		if ( amp_have_capability( ampCap::ManagePlugins ) !== true) {
 			foreach( $links['plugins'] as $link => $ar ) {
 				if(!in_array($link, $amp_allowed_plugin_pages) )
@@ -268,14 +268,14 @@ function amp_have_capability( $capability ) {
 		// List capabilities of particular user role
 		$user = defined('YOURLS_USER') ? YOURLS_USER : NULL;
 		$user_caps = array();
-		if ( amp_user_is_assigned ( $user ) )
+		if ( amp_user_is_assigned ( $user ) ) {
 		    foreach ( $amp_role_capabilities as $rolename => $rolecaps )
 		        if ( amp_user_has_role( $user, $rolename ) )
 				    $user_caps = array_merge( $user_caps, $rolecaps );
-		
-		elseif ( isset( $amp_default_role )  && in_array ($amp_default_role, array_keys( $amp_role_capabilities ) ) )
+        }
+		elseif ( isset( $amp_default_role )  && in_array ($amp_default_role, array_keys( $amp_role_capabilities ) ) ) {
 		    $user_caps = $amp_role_capabilities [ $amp_default_role ];
-		
+        }
 		$user_caps = array_unique( $user_caps );
 		// Is the requested capability in this list?
 		$return =  in_array( $capability, $user_caps );
@@ -286,7 +286,7 @@ function amp_have_capability( $capability ) {
 		// the array of ranges: '127.0.0.0/8' will always be admin
 		foreach ($amp_admin_ipranges as $range) {
 			$return = amp_cidr_match( $_SERVER['REMOTE_ADDR'], $range );
-			if( $return ) 
+			if( $return )
 				break;
 		}
 	}
@@ -300,9 +300,9 @@ function amp_user_is_assigned ( $username ) {
     global $amp_role_assignment;
     if ( empty( $amp_role_assignment ) )
 	    return false;
-	    
+
 	$return = false;
-	
+
     foreach ( $amp_role_assignment as $role )
         if ( in_array( $username, $role ) ) {
             $return = true;
@@ -331,7 +331,7 @@ function amp_user_has_role( $username, $rolename ) {
 		return false;
 
 	$users_in_role = $amp_role_assignment[$rolename];
-	return in_array( $username, $users_in_role );	
+	return in_array( $username, $users_in_role );
 }
 
 /********************* KEYWORD OWNERSHIP ************************/
@@ -342,7 +342,7 @@ yourls_add_filter( 'admin_list_where', 'amp_admin_list_where' );
 function amp_admin_list_where($where) {
 
 	if ( amp_have_capability( ampCap::ViewAll ) )
-		return $where; // Allow admin/editor users to see the lot. 
+		return $where; // Allow admin/editor users to see the lot.
 
 	$user = defined('YOURLS_USER') ? YOURLS_USER : NULL;
 	$where['sql'] = $where['sql'] . " AND (`user` = :user OR `user` IS NULL) ";
@@ -359,7 +359,7 @@ function amp_api_url_stats( $return, $shorturl ) {
 	$keyword = yourls_sanitize_string( $keyword );
 	$keyword = addslashes($keyword);
 
-	if( ( !defined('YOURLS_PRIVATE_INFOS') || YOURLS_PRIVATE_INFOS !== false ) 
+	if( ( !defined('YOURLS_PRIVATE_INFOS') || YOURLS_PRIVATE_INFOS !== false )
 			&& !amp_access_keyword($keyword) )
 		return array('simple' => "URL is owned by another user", 'message' => 'URL is owned by another user', 'errorCode' => 403);
 
@@ -373,7 +373,7 @@ function amp_pre_yourls_infos( $keyword ) {
 
 	if( yourls_is_private() && !amp_access_keyword($keyword) ) {
 
-		if ( !amp_is_valid_user() ) 
+		if ( !amp_is_valid_user() )
 			yourls_redirect( yourls_admin_url( '?access=denied' ), 302 );
 		else
 			yourls_redirect( YOURLS_SITE, 302 );
@@ -385,7 +385,7 @@ yourls_add_filter( 'get_db_stats', 'amp_get_db_stats' );
 function amp_get_db_stats( $return, $where ) {
 
 	if ( amp_have_capability( ampCap::ViewAll ) )
-		return $return; // Allow admin/editor users to see the lot. 
+		return $return; // Allow admin/editor users to see the lot.
 
 	// or... filter results
 	global $ydb;
@@ -500,8 +500,8 @@ function amp_env_check() {
 // Activation: add the user column to the URL table if not added
 yourls_add_action('activated_plugin', 'amp_activated');
 function amp_activated() {
-	global $ydb; 
-    
+	global $ydb;
+
 	$table = YOURLS_DB_TABLE_URL;
 	$sql = "DESCRIBE `".$table."`";
 	$results = $ydb->fetchObjects($sql);
@@ -591,7 +591,7 @@ function amp_manage_keyword( $keyword, $capability ) {
 
 // Check keyword ownership
 function amp_keyword_owner( $keyword ) {
-	global $ydb; 
+	global $ydb;
 	$table = YOURLS_DB_TABLE_URL;
 	$binds = array( 'keyword' => $keyword );
 	$sql = "SELECT * FROM `$table` WHERE `keyword` = :keyword";
@@ -602,7 +602,7 @@ function amp_keyword_owner( $keyword ) {
 // Record user info on keyword creation
 yourls_add_action( 'insert_link', 'amp_insert_link' );
 function amp_insert_link($actions) {
-	global $ydb; 
+	global $ydb;
 
 	$keyword = $actions[2];
 	$user = defined('YOURLS_USER') ? YOURLS_USER : NULL;
@@ -622,12 +622,12 @@ function amp_is_valid_user() {
 
 	if ( !$valid ) {
 
-		if ( yourls_is_API() 
-			&& isset( $_REQUEST['timestamp'] ) && !empty($_REQUEST['timestamp'] ) 
+		if ( yourls_is_API()
+			&& isset( $_REQUEST['timestamp'] ) && !empty($_REQUEST['timestamp'] )
 			&& isset( $_REQUEST['signature'] ) && !empty($_REQUEST['signature'] ) )
 			$valid = yourls_check_signature_timestamp();
-		elseif ( yourls_is_API() 
-			&& !isset( $_REQUEST['timestamp'] ) 
+		elseif ( yourls_is_API()
+			&& !isset( $_REQUEST['timestamp'] )
 			&& isset( $_REQUEST['signature'] ) && !empty( $_REQUEST['signature'] ) )
 			$valid = yourls_check_signature();
 		elseif ( isset( $_REQUEST['username'] ) && isset( $_REQUEST['password'] )
