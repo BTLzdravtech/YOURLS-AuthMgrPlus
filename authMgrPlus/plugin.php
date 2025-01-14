@@ -503,15 +503,25 @@ function amp_activated() {
 	global $ydb;
 
 	$table = YOURLS_DB_TABLE_URL;
-	$sql = "DESCRIBE `".$table."`";
-	$results = $ydb->fetchObjects($sql);
-
 	$activated = false;
-	foreach($results as $r) {
-		if($r->Field == 'user') {
-			$activated = true;
+	try {
+		$sql = "DESCRIBE `".$table."`";
+		$results = $ydb->fetchObjects($sql);
+		foreach($results as $r) {
+			if($r->Field == 'user') {
+				$activated = true;
+			}
+		}
+	} catch (\PDOException $e) {
+		$sql = "PRAGMA table_info([" . $table . "])";
+		$results = $ydb->fetchObjects($sql);
+		foreach($results as $r) {
+			if($r->name == 'user') {
+				$activated = true;
+			}
 		}
 	}
+
 	if(!$activated) {
 		if ($version) {
 			$sql = "ALTER TABLE `".$table."` ADD `user` VARCHAR(255) NULL";
